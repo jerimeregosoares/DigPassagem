@@ -24,29 +24,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # Cache removido propositalmente pois deletamos o package-lock.json
 
       - name: 📦 Instalar dependências (Limpeza de Ambiente)
         run: |
-          # Remove artefatos do Windows para garantir instalação limpa no Linux
+          # Remove artefatos do Windows
           rm -rf node_modules package-lock.json
           npm cache clean --force
           
           # Instala dependências do zero
           npm install
 
-      - name: 🔧 Recompilar Bindings Nativos
-        # Garante que binários como @tailwindcss/oxide sejam compatíveis com Linux
-        run: npm rebuild
-
-      - name: 🧪 Executar testes (se houver)
-        run: |
-          if [ -f "package.json" ] && grep -q '"test"' package.json; then
-            npm test || echo "Testes falharam, mas continuando deploy..."
-          else
-            echo "Nenhum teste encontrado, pulando..."
-          fi
-        continue-on-error: true
+      - name: 🔧 Corrigir Tailwind Native Binding (Linux)
+        # Instala explicitamente o binário do Tailwind v4 para Linux
+        # Isso corrige o erro "Cannot find native binding" no GitHub Actions
+        run: npm install @tailwindcss/oxide-linux-x64-gnu --no-save
 
       - name: 🏗️ Build do projeto
         run: npm run build
