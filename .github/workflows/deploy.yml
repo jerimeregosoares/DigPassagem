@@ -26,10 +26,7 @@ jobs:
 
       - name: Install Dependencies (PNPM)
         run: |
-          # Remove artefatos do npm para evitar conflito
           rm -rf node_modules package-lock.json
-          
-          # Instala dependências usando pnpm (resolve melhor binários nativos)
           pnpm install --no-frozen-lockfile
 
       - name: Build project
@@ -38,9 +35,9 @@ jobs:
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
           local-dir: ./dist/
           server-dir: ./
           protocol: ftp
