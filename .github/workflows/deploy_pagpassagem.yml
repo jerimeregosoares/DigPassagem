@@ -19,28 +19,28 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: false # Importante para evitar erro do .agent/skills
+          submodules: false
 
       - name: 🟢 Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: 📦 Setup PNPM
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: 📦 Instalar dependências (PNPM)
+      - name: 📦 Instalar dependências
         run: |
-          # Limpeza radical
-          rm -rf node_modules package-lock.json pnpm-lock.yaml
+          # Limpeza de ambiente para garantir instalação limpa
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
           
-          # Instala dependências ignorando lockfile para resolver plataforma
-          pnpm install --no-frozen-lockfile
+          # Instala dependências, incluindo as opcionais de Linux definidas no package.json
+          npm install --include=optional
+
+      - name: 🔧 Rebuild de Binários Nativos
+        # Garante que binários nativos (como @tailwindcss/oxide e lightningcss) sejam compilados/baixados corretamente
+        run: npm rebuild
 
       - name: 🏗️ Build do projeto
-        run: pnpm run build
+        run: npm run build
         env:
           NODE_ENV: production
           CI: true
