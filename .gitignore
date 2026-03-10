@@ -1,0 +1,14 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Temporary files and logs
+tsc_*.txt
+vite_*.txt
+errors.txt
+DigRifa/
