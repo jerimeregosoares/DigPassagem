@@ -12,17 +12,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: false # Força não buscar submódulos para evitar erro
+          submodules: false # Garante que não tente buscar submódulos inexistentes
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Clean Install Dependencies
+      - name: Clean Install Dependencies (Linux)
         run: |
-          rm -f package-lock.json
-          npm install
+          # Remove qualquer vestígio de instalação anterior ou lockfile do Windows
+          rm -rf node_modules package-lock.json
+          
+          # Limpa o cache do npm para evitar binários corrompidos/errados
+          npm cache clean --force
+          
+          # Instala as dependências do zero para o ambiente Linux atual
+          npm install --legacy-peer-deps
+
+      - name: Rebuild Native Bindings
+        # Força a recompilação de módulos nativos (como Tailwind Oxide) para Linux
+        run: npm rebuild
 
       - name: Build project
         run: npm run build
@@ -34,7 +44,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
-          server-dir: ./ # Se o usuário for 'DigPassagem@...', provavelmente já cai na pasta certa
+          server-dir: ./
           protocol: ftp
           port: 21
           exclude: |
