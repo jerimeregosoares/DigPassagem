@@ -12,29 +12,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: false 
+          submodules: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Clean Install Dependencies (Linux)
-        run: |
-          # Remove artifacts from Windows environment
-          rm -rf node_modules package-lock.json
-          npm cache clean --force
-          
-          # Install dependencies fresh for Linux
-          npm install --legacy-peer-deps
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-      - name: Fix Tailwind Native Binding
-        # Explicitly installs the Linux binary for Tailwind v4 (Oxide engine)
-        # This is critical to fix the "Cannot find native binding" error
-        run: npm install @tailwindcss/oxide-linux-x64-gnu --save-optional --no-save
+      - name: Install Dependencies (PNPM)
+        run: |
+          # Remove artefatos do npm para evitar conflito
+          rm -rf node_modules package-lock.json
+          
+          # Instala dependências usando pnpm (resolve melhor binários nativos)
+          pnpm install --no-frozen-lockfile
 
       - name: Build project
-        run: npm run build
+        run: pnpm run build
 
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
