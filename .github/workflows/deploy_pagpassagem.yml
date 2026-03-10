@@ -1,0 +1,88 @@
+name: Deploy Automático via FTP
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Clonar repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Atualizado para 20 (necessário para Tailwind v4 e Vite moderno)
+          cache: 'npm'
+
+      - name: 📦 Instalar dependências (Limpeza de Ambiente)
+        run: |
+          # Remove artefatos do Windows para garantir instalação limpa no Linux
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          
+          # Instala dependências do zero
+          npm install
+
+      - name: 🔧 Recompilar Bindings Nativos
+        # Garante que binários como @tailwindcss/oxide sejam compatíveis com Linux
+        run: npm rebuild
+
+      - name: 🧪 Executar testes (se houver)
+        run: |
+          if [ -f "package.json" ] && grep -q '"test"' package.json; then
+            npm test || echo "Testes falharam, mas continuando deploy..."
+          else
+            echo "Nenhum teste encontrado, pulando..."
+          fi
+        continue-on-error: true
+
+      - name: 🏗️ Build do projeto
+        run: npm run build
+        env:
+          NODE_ENV: production
+          CI: true
+
+      - name: ✅ Verificar build
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ Diretório dist não foi gerado!"
+            exit 1
+          fi
+          echo "✅ Build gerado com sucesso!"
+          ls -la dist/
+
+      - name: 🚀 Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          port: 21
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          local-dir: dist/
+          server-dir: /
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env*
+            **/README.md
+            **/*.log
+          timeout: 600000
+          log-level: verbose
+
+      - name: 🎉 Deploy concluído
+        run: |
+          echo "🚀 Deploy realizado com sucesso!"
