@@ -26,21 +26,22 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 📦 Instalar dependências
-        run: |
-          # Limpeza de ambiente para garantir instalação limpa
-          rm -rf node_modules package-lock.json
-          npm cache clean --force
-          
-          # Instala dependências, incluindo as opcionais de Linux definidas no package.json
-          npm install --include=optional
+      - name: 📦 Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
 
-      - name: 🔧 Rebuild de Binários Nativos
-        # Garante que binários nativos (como @tailwindcss/oxide e lightningcss) sejam compilados/baixados corretamente
-        run: npm rebuild
+      - name: 📦 Instalar dependências (PNPM)
+        run: |
+          # Limpeza total
+          rm -rf node_modules package-lock.json pnpm-lock.yaml
+          
+          # Instalação limpa com PNPM
+          pnpm install --no-frozen-lockfile
 
       - name: 🏗️ Build do projeto
-        run: npm run build
+        run: pnpm run build
         env:
           NODE_ENV: production
           CI: true
