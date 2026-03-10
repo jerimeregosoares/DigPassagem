@@ -12,15 +12,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: recursive  # Tenta baixar submodulos, mas o nosso foi removido
+          submodules: false # Força não buscar submódulos para evitar erro
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Versão LTS mais recente compatível com Tailwind v4/Vite
+          node-version: '20'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Clean Install Dependencies
+        run: |
+          rm -f package-lock.json
+          npm install
 
       - name: Build project
         run: npm run build
@@ -31,8 +33,8 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist/ # Pasta onde o Vite coloca o build
-          server-dir: ./ # Ajuste para a pasta correta no servidor (ex: /public_html/)
+          local-dir: ./dist/
+          server-dir: ./ # Se o usuário for 'DigPassagem@...', provavelmente já cai na pasta certa
           protocol: ftp
           port: 21
           exclude: |
