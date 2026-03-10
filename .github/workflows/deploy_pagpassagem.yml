@@ -23,8 +23,8 @@ jobs:
       - name: 🟢 Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Atualizado para 20 (necessário para Tailwind v4 e Vite moderno)
-          cache: 'npm'
+          node-version: '20'
+          # Cache removido propositalmente pois deletamos o package-lock.json
 
       - name: 📦 Instalar dependências (Limpeza de Ambiente)
         run: |
