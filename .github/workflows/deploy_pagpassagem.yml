@@ -34,28 +34,19 @@ jobs:
 
       - name: 🧹 Limpeza Profunda (Cache Busting)
         run: |
-          # Remove tudo que possa estar "sujo"
           rm -rf node_modules package-lock.json pnpm-lock.yaml dist
-          
-          # Limpa cache do pnpm
           pnpm store prune
 
       - name: 📦 Instalar dependências (PNPM)
         run: |
-          # Instalação limpa
           pnpm install --no-frozen-lockfile
-          
-          # VERIFICAÇÃO DE SEGURANÇA: Remove explicitamente qualquer traço do Tailwind v4
           pnpm remove @tailwindcss/vite @tailwindcss/oxide || true
-          
-          # Garante que estamos usando Tailwind v3
           pnpm add -D tailwindcss@3.4.1 postcss@8.4.35 autoprefixer@10.4.17
 
-      - name: 🔍 Debug: Listar versões instaladas
+      - name: 🔍 Debug - Listar versões instaladas
         run: |
           echo "Verificando versões instaladas..."
           pnpm list tailwindcss postcss vite
-          
           echo "Verificando se @tailwindcss/oxide ainda existe..."
           ls -R node_modules/@tailwindcss || echo "Diretório @tailwindcss limpo/ok"
 
